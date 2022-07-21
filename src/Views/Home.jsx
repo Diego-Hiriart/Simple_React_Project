@@ -4,24 +4,57 @@ import '../css/home.css';
 
 function Home(){
     const urlUsgsAPI = "https://earthquake.usgs.gov/fdsnws/event/1/query";
-    const defaultParams = {
+    const defaultParams = {//A 1200 km radius around the latitude and logitude
         format: "geojson",
-        minlongitude: -92,
-        maxlongitude: -74,
-        minlatitude: -6,
-        maxlatitude: 3
+        latitude: -1.7,
+        longitude: -83,
+        maxradiuskm: 1200
     };
     const [searchParams, setSearchParams] = useState({
         format: "geojson",
-        minlongitude: 0,
-        maxlongitude: 0,
-        minlatitude: 0,
-        maxlatitude: 0,
+        latitude: 0,
+        longitude: 0,
+        maxradiuskm: 0,
+        minmagnitude: 0,
+        maxmagnitude: 11,//Events higher than 10 are impossible, see: https://www.usgs.gov/faqs/can-megaquakes-really-happen-magnitude-10-or-larger
         starttime: new Date().toISOString(),
         endtime: new Date().toISOString()
     });
     const [geoEvents, setGeoEvents] = useState(null);
     const [dataReceived, setDataReceived] = useState(false)
+    /*Listeners to validate form data, they are in a useEffect so that they dont execute before the elements 
+    exist and the [name]Field vars are null end up being (in a functional component useEffect is like a componentDidMount)*/
+    useEffect(() => {
+        var radiusField = document.getElementById("radiusInput");
+        var minMagField = document.getElementById("minMagInput");
+        var maxMagField = document.getElementById("maxMagInput");
+        radiusField.addEventListener("input", () => {
+            if(radiusField.value > 20001.6){
+                radiusField.setCustomValidity("Radius can't be over 20001.6");
+                radiusField.reportValidity();
+            }else{
+                radiusField.setCustomValidity("");
+            }
+        })
+    
+        minMagField.addEventListener("input", () => {
+            if(minMagField.value < 0 || minMagField.value >= 10){
+                minMagField.setCustomValidity("Magnitude cannot be: less than 0, 10 or more");
+                minMagField.reportValidity();
+            }else{
+                minMagField.setCustomValidity("");
+            }
+        })
+    
+        maxMagField.addEventListener("input", () => {
+            if(maxMagField.value >= 10 || maxMagField.value < 0){
+                maxMagField.setCustomValidity("Magnitude cannot be: less than 0, 10 or more");
+                maxMagField.reportValidity();
+            }else{
+                maxMagField.setCustomValidity("");
+            }
+        })
+    })
 
     useEffect(() => {
         document.title = "Diego Hiriart - React Project";
@@ -72,6 +105,7 @@ function Home(){
         setSearchParams(newFormData);
     }
 
+
     const filterRequest = async (filter) =>{
         const requestOptions = {
             method: 'GET',
@@ -95,10 +129,11 @@ function Home(){
 
         const filter = {
             format: searchParams.format,
-            minlatitude: searchParams.minlatitude,
-            maxlatitude: searchParams.maxlatitude,
-            minlongitude: searchParams.minlongitude,
-            maxlongitude: searchParams.maxlongitude,
+            latitude: searchParams.latitude,
+            longitude: searchParams.longitude,
+            maxradiuskm: searchParams.maxradiuskm,
+            minmagnitude: searchParams.minmagnitude,
+            maxmagnitude: searchParams.maxmagnitude,
             starttime: searchParams.starttime,
             endtime: searchParams.endtime
         }
@@ -116,51 +151,65 @@ function Home(){
         <div class="title">
             <h1>React Project - USGS Earthquake Catalog</h1>
             <h2>A simple React app that consumes the USGS Earthquake Catalog API</h2>
-            <h3>Find out more about the API here: <a href="https://earthquake.usgs.gov/fdsnws/event/1/">https://earthquake.usgs.gov/fdsnws/event/1/</a></h3>
-            <p>By default, this web page will get earthquake information for Ecuador and its sorrounding area for the last 30 days (the location is set as this 
-                app's default, the time period is in UTC and it's the API's default). You can search for specific data by inserting minimun and maximun longitude and latitude, as well as start and end time.</p>
+            <h3>Find out more about the API <a href="https://earthquake.usgs.gov/fdsnws/event/1/">here</a></h3>
+            <p>By default, this web page will get earthquake information for Ecuador and its sorrounding area for the last 30 days. The location is set as this 
+                app's default with latitude=-1.7, longitude=-83, and a radius of 1200 km sorund those coordinates; the time period is in UTC and it's the API's default. 
+                You can search for specific data by inserting latitude, longitude, the radius aorund that point, minimun and maximun maginitude of the events, start and end time.</p>
         </div>
         <main class="events-data">
-            <form class="filter-form" onSubmit={submitFilter}>
-                <div class="form-group">
-                    <label>Min longitude </label>
-                    <input type="text" name="minlongitude" required onChange={handleFormChange}></input>
-                </div>
-                <div class="form-group">
-                    <label>Max longitude </label>
-                    <input type="text" name="maxlongitude" required onChange={handleFormChange}></input>
-                </div>
-                <div class="form-group">
-                    <label>Min latitude </label>
-                    <input type="text" name="minlatitude" required onChange={handleFormChange}></input>
-                </div>
-                <div class="form-group">
-                    <label>Max latitude </label>
-                    <input type="text" name="maxlatitude" required onChange={handleFormChange}></input>
-                </div>
-                <div class="form-group">
-                    <label>Start Date </label>
-                    <input type="date" name="starttime" required onChange={handleFormChange}></input>
-                </div>
-                <div class="form-group">
-                    <label>End Date </label>
-                    <input type="date" name="endtime" required onChange={handleFormChange}></input>
-                </div>                   
-                <button type="submit" onChange={handleFormChange}>Search</button>
-            </form>
+            <h3>Geological event search</h3>
+            <div class="filter">
+                <form class="filter-form" onSubmit={submitFilter}>
+                    <div class="form-group">
+                        <label>Latitude </label>
+                        <input type="text" name="latitude" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude </label>
+                        <input type="text" name="longitude" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>Radius in km </label>
+                        <input type="text" id="radiusInput" name="maxradiuskm" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>Min magnitude </label>
+                        <input type="text" id="minMagInput" name="minmagnitude" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>Max magnitude </label>
+                        <input type="text" id="maxMagInput" name="maxmagnitude" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date UTC</label>
+                        <input type="date" name="starttime" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date UTC</label>
+                        <input type="date" name="endtime" required onChange={handleFormChange}></input>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit">Search</button>
+                        <button type="button" onClick={getDefaultData}>Clear search</button>
+                    </div>             
+                </form>
+            </div>
             <div class="results">
                 <table>
                     <thead>
-                        <th>Type of event</th>
-                        <th>Location</th>
-                        <th>Latitude</th>
-                        <th>Longitude</th>
-                        <th>Depth (km)</th>
-                        <th>Magnitude</th>
-                        <th>Time</th>
-                        <th>Reports that event was felt</th>
-                        <th>Oceanic region</th>
-                        <th>Event ID</th>
+                        <tr>
+                            <th>Type of event</th>
+                            <th>Location</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Depth (km)</th>
+                            <th>Magnitude</th>
+                            <th>Magnitude type</th>
+                            <th>Date and Time UTC</th>
+                            <th>Reports that event was felt</th>
+                            <th>Oceanic region</th>
+                            <th>Event ID</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {geoEvents &&
@@ -178,6 +227,7 @@ function Home(){
                 <ul>
                     <li><a href="https://github.com/Diego-Hiriart/Simple_React_Project">React app source code</a></li>
                     <li><a href="https://earthquake.usgs.gov/fdsnws/event/1/">Earthquake Catalog API documentation</a></li>
+                    <li><a href="https://www.usgs.gov/faqs/can-megaquakes-really-happen-magnitude-10-or-larger">Maximun earthquake magnitude</a></li>
                     <li><a href="https://react-project-hiriart.herokuapp.com/">Deployed app in Heroku</a></li>
                 </ul>
             </div>
