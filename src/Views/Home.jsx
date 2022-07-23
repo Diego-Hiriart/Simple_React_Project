@@ -151,7 +151,7 @@ function Home(){
         <div class="title">
             <h1>React Project - USGS Earthquake Catalog</h1>
             <h2>A simple React app that consumes the USGS Earthquake Catalog API</h2>
-            <h3>Find out more about the API <a href="https://earthquake.usgs.gov/fdsnws/event/1/">here</a></h3>
+            <h3>Find out more about the <a href="https://earthquake.usgs.gov/fdsnws/event/1/">USGS Earthquake Catalog API</a></h3>
             <p>By default, this web page will get earthquake information for Ecuador and its sorrounding area for the last 30 days. The location is set as this 
                 app's default with latitude=-1.7, longitude=-83, and a radius of 1200 km sorund those coordinates; the time period is in UTC and it's the API's default. 
                 You can search for specific data by inserting latitude, longitude, the radius aorund that point, minimun and maximun maginitude of the events, start and end time.</p>

@@ -7,7 +7,7 @@ function App() {
   return (
     <Router>
         <Routes>
-          <Route path="/" element={<Home/>}/>{/*The "" path redirects to the component*/}
+          <Route path="/" element={<Home/>}/>{/*The specified path redirects to the component, in this case, defaults the app to Home*/}
         </Routes>
     </Router>
   )
